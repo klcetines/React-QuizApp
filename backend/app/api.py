@@ -1,5 +1,13 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
+
+origins = [
+    "http://localhost.tiangolo.com",
+    "https://localhost.tiangolo.com",
+    "http://localhost",
+    "http://localhost:5174",
+]
 
 class Question(BaseModel):
     id: int
@@ -14,6 +22,14 @@ class Submission(BaseModel):
     answers: list[Answer]
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 questions = {
     1: {"question": "What is the capital of France?", "answers": ["Lisbon", "Paris", "Seoul"], "correct": "Paris"},
