@@ -11,7 +11,21 @@ function App() {
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(currentIndex + 1);
     }
-    console.log(answers);
+    else{
+      const body = {
+        answers: Object.entries(answers).map(([key, value]) => ({
+          question_id: Number(key),
+          answer: value
+        }))
+      };
+      api.post('/submissions', body)
+        .then(response => {
+          alert(`Your score is: ${response.data.score}`);
+        })
+        .catch(error => {
+          console.error('Error submitting answers:', error);
+        });
+    }
   };
 
   useEffect(() => {
@@ -49,7 +63,7 @@ function App() {
             </select>
           </div>
           
-          <button onClick={increaseQuestionIndex}>Next Question</button>
+          <button onClick={increaseQuestionIndex}>{currentIndex < questions.length-1 ? "Next Question" : "Submit test" }</button>
         </div>
       </section>
       <div className="ticks"></div>
