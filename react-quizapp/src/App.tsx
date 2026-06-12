@@ -6,6 +6,7 @@ function App() {
   const [questions, setQuestions] = useState([]);   // the whole array from the API
   const [currentIndex, setCurrentIndex] = useState(0); // which one I'm showing
   const [answers, setAnswers] = useState({});
+  const [score, setScore] = useState(null);
 
   const increaseQuestionIndex = () => {
     if (currentIndex < questions.length - 1) {
@@ -20,7 +21,7 @@ function App() {
       };
       api.post('/submissions', body)
         .then(response => {
-          alert(`Your score is: ${response.data.score}`);
+          setScore(response.data.score);
         })
         .catch(error => {
           console.error('Error submitting answers:', error);
@@ -37,9 +38,18 @@ function App() {
           console.error('Error fetching questions:', error);
         });
   }, []);
+
   if (questions.length === 0) {
     return <p>Loading...</p>;
   }
+  
+  if (score !== null) {
+  return (
+    <section id="results">
+      <h1>You scored {score} / {questions.length}</h1>
+    </section>
+  );
+}
   else{
     return (
     <>
