@@ -35,6 +35,8 @@ questions = {
     1: {"question": "What is the capital of France?", "answers": ["Lisbon", "Paris", "Seoul"], "correct": "Paris"},
     2: {"question": "What is 2 + 2?", "answers": ["4.5", "4", "5"], "correct": "4"},
     3: {"question": "What is the bird that shares name with a fruit?", "answers": ["Zebra", "Orange", "Kiwi"], "correct": "Kiwi"},
+    4: {"question": "When was the first 'Dungeons and Dragons' boxed set published?", "answers": ["1974", "1991", "1982"], "correct": "1974"},
+    5: {"question": "Which three countries make up Scandinavia?", "answers": ["Sweden, Norway and Finland", "Latvia, Estonia and Finland", "Norway, Sweden and Denmark"], "correct": "Norway, Sweden and Denmark"},   
 }
 
 @app.get("/")

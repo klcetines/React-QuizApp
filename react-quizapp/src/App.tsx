@@ -5,14 +5,13 @@ import api from './api.js';
 function App() {
   const [questions, setQuestions] = useState([]);   // the whole array from the API
   const [currentIndex, setCurrentIndex] = useState(0); // which one I'm showing
-  const [answers, setAnswers] = useState({});
+  const [answers, setAnswers] = useState({});          // { questionId: chosenAnswer }
   const [score, setScore] = useState(null);
 
-  const increaseQuestionIndex = () => {
+  const handleNext = () => {
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(currentIndex + 1);
-    }
-    else{
+    } else {
       const body = {
         answers: Object.entries(answers).map(([key, value]) => ({
           question_id: Number(key),
@@ -20,68 +19,90 @@ function App() {
         }))
       };
       api.post('/submissions', body)
-        .then(response => {
-          setScore(response.data.score);
-        })
-        .catch(error => {
-          console.error('Error submitting answers:', error);
-        });
+        .then(response => setScore(response.data.score))
+        .catch(error => console.error('Error submitting answers:', error));
     }
+  };
+
+  const handleRestart = () => {
+    setScore(null);
+    setCurrentIndex(0);
+    setAnswers({});
   };
 
   useEffect(() => {
     api.get('/questions')
-        .then(response => {
-          setQuestions(response.data);
-        })
-        .catch(error => {
-          console.error('Error fetching questions:', error);
-        });
+      .then(response => setQuestions(response.data))
+      .catch(error => console.error('Error fetching questions:', error));
   }, []);
 
+  // 1. Still loading
   if (questions.length === 0) {
-    return <p>Loading...</p>;
-  }
-  
-  if (score !== null) {
-  return (
-    <section id="results">
-      <h1>You scored {score} / {questions.length}</h1>
-    </section>
-  );
-}
-  else{
     return (
-    <>
-      <section id="quiz">
-        <div className="hero-content">
-          <h1>Welcome to the Ultimate Quiz App!</h1>
-          
-          <h2>{questions[currentIndex].question}</h2>
-          
-          <div>
-            <select
-              value={answers[questions[currentIndex].id] || ''}
-              onChange={(e) =>
-                setAnswers(prev => ({ ...prev, [questions[currentIndex].id]: e.target.value }))
+      <div className="quiz-screen">
+        <p className="loading">Loading questions…</p>
+      </div>
+    );
+  }
+
+  // 2. Finished — show the score
+  if (score !== null) {
+    return (
+      <div className="quiz-screen">
+        <div className="card results">
+          <p className="results-eyebrow">All done</p>
+          <p className="results-score"><span>{score}</span> / {questions.length}</p>
+          <p className="results-message">
+            {score === questions.length
+              ? 'Perfect run — every answer landed.'
+              : `Nice work — you got ${score} of ${questions.length}.`}
+          </p>
+          <button className="action" onClick={handleRestart}>Try again</button>
+        </div>
+      </div>
+    );
+  }
+
+  // 3. The quiz — values derived from state on each render
+  const current = questions[currentIndex];
+  const isLast = currentIndex === questions.length - 1;
+  const selected = answers[current.id];
+  const progress = ((currentIndex + 1) / questions.length) * 100;
+
+  return (
+    <div className="quiz-screen">
+      <div className="card">
+        <div className="progress">
+          <div className="progress-meta">
+            Question {currentIndex + 1} of {questions.length}
+          </div>
+          <div className="progress-track">
+            <div className="progress-fill" style={{ width: `${progress}%` }} />
+          </div>
+        </div>
+
+        <h1 className="question">{current.question}</h1>
+
+        <div className="answers">
+          {current.answers.map((answer) => (
+            <button
+              key={answer}
+              className={`answer ${selected === answer ? 'answer--selected' : ''}`}
+              onClick={() =>
+                setAnswers(prev => ({ ...prev, [current.id]: answer }))
               }
             >
-              <option value="" disabled>Select an answer</option>
-              <option value={questions[currentIndex].answers[0]}>{questions[currentIndex].answers[0]}</option>
-              <option value={questions[currentIndex].answers[1]}>{questions[currentIndex].answers[1]}</option>
-              <option value={questions[currentIndex].answers[2]}>{questions[currentIndex].answers[2]}</option>
-            </select>
-          </div>
-          
-          <button onClick={increaseQuestionIndex}>{currentIndex < questions.length-1 ? "Next Question" : "Submit test" }</button>
+              {answer}
+            </button>
+          ))}
         </div>
-      </section>
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
-  }
-}
 
+        <button className="action" onClick={handleNext} disabled={!selected}>
+          {isLast ? 'Submit test' : 'Next question'}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default App
