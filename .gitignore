@@ -1,4 +1,11 @@
-/node_modules/
-/lib/
-.bsb.lock
-docs/
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# OS / editor
+desktop.ini
+.DS_Store
+.vscode/
+.idea/
