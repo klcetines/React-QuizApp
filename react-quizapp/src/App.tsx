@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react'
 import './App.css'
-import api from './api.js';
+import api from './api'
+import type { Question, AnswerMap, ScoreResult } from './types'
 
 function App() {
-  const [questions, setQuestions] = useState([]);   // the whole array from the API
-  const [currentIndex, setCurrentIndex] = useState(0); // which one I'm showing
-  const [answers, setAnswers] = useState({});          // { questionId: chosenAnswer }
-  const [score, setScore] = useState(null);
+  // Each piece of state now declares what it holds, so the compiler
+  // checks every read/write against that shape.
+  const [questions, setQuestions] = useState<Question[]>([]); // the whole array from the API
+  const [currentIndex, setCurrentIndex] = useState(0);        // which one I'm showing (number, inferred)
+  const [answers, setAnswers] = useState<AnswerMap>({});      // { questionId: chosenAnswer }
+  const [score, setScore] = useState<number | null>(null);    // null until the quiz is submitted
 
   const handleNext = () => {
     if (currentIndex < questions.length - 1) {
@@ -18,7 +21,9 @@ function App() {
           answer: value
         }))
       };
-      api.post('/submissions', body)
+      // api.post<ScoreResult>(...) tells axios what the response data looks like,
+      // so response.data.score is known to be a number.
+      api.post<ScoreResult>('/submissions', body)
         .then(response => setScore(response.data.score))
         .catch(error => console.error('Error submitting answers:', error));
     }
@@ -31,7 +36,9 @@ function App() {
   };
 
   useEffect(() => {
-    api.get('/questions')
+    // api.get<Question[]>(...) means response.data is typed as Question[],
+    // which is what setQuestions now expects.
+    api.get<Question[]>('/questions')
       .then(response => setQuestions(response.data))
       .catch(error => console.error('Error fetching questions:', error));
   }, []);
@@ -63,7 +70,9 @@ function App() {
     );
   }
 
-  // 3. The quiz — values derived from state on each render
+  // 3. The quiz — values derived from state on each render.
+  // Because `questions` is Question[], `current` is a Question and the
+  // compiler knows current.question is a string and current.answers is string[].
   const current = questions[currentIndex];
   const isLast = currentIndex === questions.length - 1;
   const selected = answers[current.id];
